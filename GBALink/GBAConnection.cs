@@ -1,32 +1,27 @@
 ﻿using PokemonPacketCorruptor;
 using System;
-using System.IO;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace GBALink
 {
     public class GBAConnection : IDisposable
     {
-
         public TcpClient Client;
         public NetworkStream Stream;
         private Thread receiveThread;
 
         public Stage Stage = Stage.Synchronization;
-        public Mode Mode = Mode.Corrupt;
-        private int skipPacketCount = 0;
+        public Mode Mode = Mode.Ai;
+        private int skipPacketCount;
 
         public GBAConnection(string ip, int port)
         {
-
             Client = new TcpClient(ip, port);
             Stream = Client.GetStream();
 
             receiveThread = new Thread(receive);
             receiveThread.Start();
-
         }
 
         /// <summary>
@@ -38,11 +33,12 @@ namespace GBALink
             Stream.Write(content, 0, content.Length);
         }
 
-        int ticks = 0;
-        int frames = 0;
+        private int ticks;
+        private int frames;
+
         private byte[] getStatus()
         {
-            byte[] status = new byte[] { 0x6a, 0, 0, 0, 0, 0, 0, 0 };
+            byte[] status = { 0x6a, 0, 0, 0, 0, 0, 0, 0 };
 
             ticks++;
             frames += 8;
@@ -76,12 +72,12 @@ namespace GBALink
                 {
                     Reset();
                     Send(bytes);
-                    Send(new byte[8] { 0x6C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
-                    Send(new byte[8] { 0x6C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                    Send(new byte[] { 0x6C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                    Send(new byte[] { 0x6C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
                 }
                 if (bytes[0] == 0x6C)// Authentification packet
                 {
-                    Send(new byte[8] { 0x6C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+                    Send(new byte[] { 0x6C, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
                     Send(getStatus());
                 }
                 if (bytes[0] == 0x6A)// Clock status packet
@@ -106,7 +102,8 @@ namespace GBALink
             skipPacketCount = 0;
         }
 
-        AiAction action = new AiAction();
+        private Battle battle = new Battle();
+
         public void ProcessPackets(byte[] bytes)
         {
             if (bytes == null || (bytes[0] != 0x69 && bytes[0] != 0x68)) return;
@@ -129,7 +126,6 @@ namespace GBALink
                     break;
 
                 case (Stage.ModeSelection):// Mode Selection section
-
                     if (bytes[1] == 0xD5)// Option selected packet
                     {
                         Console.WriteLine("[+] Option has been selected !");
@@ -147,31 +143,26 @@ namespace GBALink
                     Stage = Stage.Action;
                     break;
 
-                case (Stage.Action):// trigger Actions
-
-                    if (Mode == Mode.Corrupt)
+                case (Stage.Action):// Trigger Actions
+                    switch (Mode)
                     {
-                        Program.Random.NextBytes(bytes);
-                        bytes[0] = 0x69;// PK Packets identifier
-                    }
-                    else if (Mode == Mode.Mirror)
-                    {
-                    }
-                    else if (Mode == Mode.Monitor)
-                    {
-                        FileStream s = File.OpenWrite("packets.bin");
-                        s.Position = s.Length;
-                        s.Write(bytes, 0, bytes.Length);
-                        s.Close();
-                    }
-                    else if (Mode == Mode.Ai)
-                    {
-                        skipPacketCount++;
-                        if (skipPacketCount < 672)// End of trainer, not supported yet
+                        case Mode.Corrupt:// Sends stable random data
+                            Program.Random.NextBytes(bytes);
+                            bytes[0] = 0x69;// PK Packets identifier
                             break;
 
-                        action.OnReceive(this, bytes);
+                        case Mode.Mirror:// Leaves packets untouched
+                            break;
+
+                        case Mode.Monitor:// Logs all, leaves packets untouched
+                            MonitorHelper.Log(bytes, "monitor.bin");
+                            break;
+
+                        case Mode.Ai:// Sends data over to the Battle instance
+                            battle.Receive(this, bytes);
+                            break;
                     }
+
                     break;
             }
         }

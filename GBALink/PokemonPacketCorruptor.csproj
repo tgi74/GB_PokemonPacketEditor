@@ -44,8 +44,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AiAction.cs" />
+    <Compile Include="Battle.cs" />
     <Compile Include="GBAConnection.cs" />
-    <Compile Include="PacketEnum.cs" />
+    <Compile Include="Monitor.cs" />
+    <Compile Include="PacketHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace GBALink
@@ -8,32 +9,43 @@ namespace GBALink
         internal static GBAConnection Connection;
         internal static Random Random = new Random();
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            try {
+            try
+            {
                 Connection = new GBAConnection("127.0.0.1", 8765);
-            }catch(Exception)
+            }
+            catch (Exception)
             {
                 Console.WriteLine("Could not connect, Retrying...");
                 Main(args);
             }
             commandListenerMain();
-
         }
 
-        static void commandListenerMain()
+        private static void commandListenerMain()
         {
             Console.WriteLine("[+] Now listening commands");
             while (true)
             {
                 Thread.Sleep(250);
 
-                string[] args = Console.ReadLine().Split(' ');
+                var args = Console.ReadLine().Split(' ');
                 switch (args[0])
                 {
                     case ("mode"):
-                        Connection.Mode = (Mode)int.Parse(args[1]);
-                        Console.WriteLine("Mode changed to #{0}", Connection.Mode);
+                        Mode? newMode;
+                        try
+                        {
+                            newMode = (Mode)Enum.Parse(typeof(Mode), args[1], true);
+                        }
+                        catch (Exception)
+                        {
+                            newMode = null;
+                        }
+                        Debug.Assert(newMode != null, $"Incorrect mode detected: {args[1]}");
+                        Connection.Mode = newMode.Value;
+                        Console.WriteLine($"Mode changed to #{Connection.Mode}");
                         break;
 
                     case ("reset"):

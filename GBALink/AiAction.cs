@@ -4,31 +4,50 @@ using System.Collections.Generic;
 
 namespace PokemonPacketCorruptor
 {
-    class AiAction
+    internal class AiAction
     {
-        Action action = 0x00;
+        internal Battle battle;
+        private Action? action;
 
-        internal List<byte[]> Bytes = new List<byte[]>();
-        internal byte[] Response { get { return new byte[8]; } }
+        internal List<byte[]> Buffer = new List<byte[]>();
 
-        internal void OnReceive(GBAConnection co, byte[] bytes)
+        internal void OnReceive(Battle bat, byte[] bytes)
         {
-            Bytes.Add(bytes);
+            battle = bat;
+            Buffer.Add(bytes);
 
-            if (Bytes.Count == 23)
+            if (Buffer.Count == 23)
                 Compute();
+
+            if (bytes[1] != 0x00 && action.HasValue)
+            {
+                bytes[1] = (byte)action;
+            }
         }
 
         internal void Compute()
         {
-            foreach (byte[] b in Bytes)
-                Console.Write(b[1] + " ");
+            /* ========== //
+            // Infos:
+            // 00: 0x68 / 0x69
+            // 01: ActionByte
+            // 02: 0x81
+            // 03: 0x00
+            // 04: ? ends with '0' (Action informations?) (0x00: Unknown, 0x40: Attacks works, 0x60: Unknown, 0xC0: Unknown(con. crash)
+            // 05: ?
+            // 06: Info Block delimiter (increments on each begining)
+            // 07: Change on each new Action
+            // ========== */
 
-            Console.WriteLine("\nAttack: " + (Action)Bytes[1][1]);
+            Console.WriteLine($"\nOpponent Attack: {(Action)Buffer[1][1]}");
 
-            Bytes.Clear();
+            MonitorHelper.Log(Buffer, $"ai-{battle.OpponentName}.bin");
 
-            action = (Action)new Random().Next((int)Action.Attack1, (int)Action.Switch4);
+            action = (Action)new Random().Next((byte)Action.Attack1, (byte)Action.Switch4);
+            Console.WriteLine($"\nNext Ai Attack: {action}");
+
+            // Buffer reset
+            Buffer.Clear();
         }
     }
 }
