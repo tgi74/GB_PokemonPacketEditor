@@ -38,7 +38,7 @@ namespace GBALink
 
         private byte[] getStatus()
         {
-            byte[] status = { 0x6a, 0, 0, 0, 0, 0, 0, 0 };
+            byte[] status = { 0x6A, 0, 0, 0, 0, 0, 0, 0 };
 
             ticks++;
             frames += 8;
@@ -52,6 +52,7 @@ namespace GBALink
             status[6] = BitConverter.GetBytes((frames / 256d) % 256d)[0];
 
             status[7] = BitConverter.GetBytes((frames / 256d / 256d) % 256d)[0];
+
             return status;
         }
 
@@ -97,16 +98,25 @@ namespace GBALink
 
         public void Reset()
         {
+#if MONITOR
+            MonitorHelper.Reset("monitor.bin");
+            MonitorHelper.Reset("action.bin");
+#endif
             Console.WriteLine("[!] Reset detected");
             Stage = Stage.Synchronization;
             skipPacketCount = 0;
+            battle = new Battle();
         }
 
-        private Battle battle = new Battle();
+        private Battle battle;
 
         public void ProcessPackets(byte[] bytes)
         {
             if (bytes == null || (bytes[0] != 0x69 && bytes[0] != 0x68)) return;
+
+#if MONITOR
+            MonitorHelper.Log(bytes, "monitor.bin");
+#endif
 
             switch (Stage)
             {
@@ -144,6 +154,9 @@ namespace GBALink
                     break;
 
                 case (Stage.Action):// Trigger Actions
+#if MONITOR
+                    MonitorHelper.Log(bytes, "action.bin");
+#endif
                     switch (Mode)
                     {
                         case Mode.Corrupt:// Sends stable random data

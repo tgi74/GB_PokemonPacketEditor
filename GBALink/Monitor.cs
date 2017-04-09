@@ -18,5 +18,11 @@ namespace PokemonPacketCorruptor
             s.Write(bytes, 0, bytes.Length);
             s.Close();
         }
+
+        public static void Reset(string file = "packets.bin")
+        {
+            if (File.Exists(file))
+                File.Delete(file);
+        }
     }
 }

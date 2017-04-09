@@ -41,8 +41,6 @@ namespace PokemonPacketCorruptor
 
             Console.WriteLine($"\nOpponent Attack: {(Action)Buffer[1][1]}");
 
-            MonitorHelper.Log(Buffer, $"ai-{battle.OpponentName}.bin");
-
             action = (Action)new Random().Next((byte)Action.Attack1, (byte)Action.Switch4);
             Console.WriteLine($"\nNext Ai Attack: {action}");
 
