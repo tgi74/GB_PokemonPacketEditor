@@ -1,5 +1,6 @@
 ﻿using PokemonPacketCorruptor;
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -9,15 +10,15 @@ namespace GBALink
     {
         public TcpClient Client;
         public NetworkStream Stream;
-        private Thread receiveThread;
+        private readonly Thread receiveThread;
 
         public Stage Stage = Stage.Synchronization;
         public Mode Mode = Mode.Ai;
         private int skipPacketCount;
 
-        public GBAConnection(string ip, int port)
+        public GBAConnection(TcpClient client)
         {
-            Client = new TcpClient(ip, port);
+            Client = client;
             Stream = Client.GetStream();
 
             receiveThread = new Thread(receive);
@@ -65,7 +66,7 @@ namespace GBALink
 
                 if (lenght == 0)
                 {
-                    Console.WriteLine("[!] Connection closed");
+                    Console.WriteLine($"[-] [VS{ battle?.Opponent.Name}] Connection closed");
                     break;
                 }
 
@@ -100,9 +101,10 @@ namespace GBALink
         {
 #if MONITOR
             MonitorHelper.Reset("monitor.bin");
-            MonitorHelper.Reset("action.bin");
+            foreach (var s in Enum.GetValues(typeof(Stage)))
+                MonitorHelper.Reset($"{Stage}.bin");
 #endif
-            Console.WriteLine("[!] Reset detected");
+            Console.WriteLine($"[!] [VS{ battle.Opponent.Name}] Reset detected");
             Stage = Stage.Synchronization;
             skipPacketCount = 0;
             battle = new Battle();
@@ -116,6 +118,7 @@ namespace GBALink
 
 #if MONITOR
             MonitorHelper.Log(bytes, "monitor.bin");
+            MonitorHelper.Log(bytes, $"{Stage}.bin");
 #endif
 
             switch (Stage)
@@ -123,7 +126,7 @@ namespace GBALink
                 case (Stage.Synchronization):// Synchronization section
                     if (bytes[1] == 0x60)// Synchronization successfull packet
                     {
-                        Console.WriteLine("[!] Synchronized");
+                        Console.WriteLine($"[!] [VS{ battle.Opponent.Name}] Synchronized");
                         Stage++;
                         bytes[1] = 0x00;
                         break;
@@ -138,7 +141,7 @@ namespace GBALink
                 case (Stage.ModeSelection):// Mode Selection section
                     if (bytes[1] == 0xD5)// Option selected packet
                     {
-                        Console.WriteLine("[+] Option has been selected !");
+                        Console.WriteLine($"[+] [VS{ battle.Opponent.Name}] Option has been selected !");
                         Stage++;
                     }
                     break;
@@ -154,9 +157,6 @@ namespace GBALink
                     break;
 
                 case (Stage.Action):// Trigger Actions
-#if MONITOR
-                    MonitorHelper.Log(bytes, "action.bin");
-#endif
                     switch (Mode)
                     {
                         case Mode.Corrupt:// Sends stable random data
@@ -172,7 +172,7 @@ namespace GBALink
                             break;
 
                         case Mode.Ai:// Sends data over to the Battle instance
-                            battle.Receive(this, bytes);
+                            bytes[1] = battle.Process(this, bytes[1]);
                             break;
                     }
 

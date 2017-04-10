@@ -1,5 +1,4 @@
-﻿using GBALink;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace PokemonPacketCorruptor
@@ -7,45 +6,70 @@ namespace PokemonPacketCorruptor
     internal class AiAction
     {
         internal Battle battle;
+        private readonly Random r = new Random();
         private Action? action;
 
-        internal List<byte[]> Buffer = new List<byte[]>();
+        internal List<byte> Buffer = new List<byte>();
 
-        internal void OnReceive(Battle bat, byte[] bytes)
+        internal byte Process(Battle bat, byte data)
         {
             battle = bat;
-            Buffer.Add(bytes);
+            Buffer.Add(data);
 
             if (Buffer.Count == 23)
                 Compute();
 
-            if (bytes[1] != 0x00 && action.HasValue)
+            if (data != 0x00 && action.HasValue)
             {
-                bytes[1] = (byte)action;
+                data = (byte)action;
             }
+
+            return data;
         }
 
         internal void Compute()
         {
-            /* ========== //
-            // Infos:
-            // 00: 0x68 / 0x69
-            // 01: ActionByte
-            // 02: 0x81
-            // 03: 0x00
-            // 04: ? ends with '0' (Action informations?) (0x00: Unknown, 0x40: Attacks works, 0x60: Unknown, 0xC0: Unknown(con. crash)
-            // 05: ?
-            // 06: Info Block delimiter (increments on each begining)
-            // 07: Change on each new Action
-            // ========== */
+            var action = (Action)Buffer[1];
+            Console.WriteLine($"[VS{battle.Opponent.Name}] Opponent Action is {action}");
 
-            Console.WriteLine($"\nOpponent Attack: {(Action)Buffer[1][1]}");
+            MonitorHelper.Log(Buffer, "ai.bin");
 
-            action = (Action)new Random().Next((byte)Action.Attack1, (byte)Action.Switch4);
-            Console.WriteLine($"\nNext Ai Attack: {action}");
+            if (r.Next(0, 10) != 1)
+                Attack();
+            else
+                Switch();
 
             // Buffer reset
             Buffer.Clear();
+        }
+
+        internal void Attack()
+        {
+            short tries = 0;
+            byte index = 0;
+            PokemonAttack attack = PokemonAttack.None;
+            while (attack == PokemonAttack.None)
+            {
+                tries++;
+                index = (byte)r.Next(0, 4);
+                attack = battle.Bot.Pokemons[battle.Bot.CurrentPokemonIndex].MoveFromId(index);
+
+                if (tries > 20)
+                    break;
+            }
+
+            action = Action.Attack1 + index;
+            Console.WriteLine($"[VS{battle.Opponent.Name}] Bot Attacked #{battle.Bot.CurrentPokemonIndex} ({battle.Bot.Pokemons[battle.Bot.CurrentPokemonIndex].Name}) with {attack}#{index}");
+        }
+
+        internal void Switch()
+        {
+            byte index = (byte)r.Next(0, battle.Bot.PokemonAmount + 1);
+
+            battle.Bot.CurrentPokemonIndex = index;
+            action = Action.Switch1 + index;
+
+            Console.WriteLine($"[VS{battle.Opponent.Name}] Bot Switched to {battle.Bot.Pokemons[battle.Bot.CurrentPokemonIndex].Name}#{index}");
         }
     }
 }

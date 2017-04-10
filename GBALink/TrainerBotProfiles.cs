@@ -37,7 +37,7 @@
                 Attack = 15,
                 Defense = 15,
                 Speed = 15,
-                Special = 15,
+                Special = 15
             },
             new Pokemon(),
             new Pokemon(),

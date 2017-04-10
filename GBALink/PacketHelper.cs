@@ -61,6 +61,7 @@ namespace PokemonPacketCorruptor
 
     internal enum PokemonAttack : byte
     {
+        None = 0x00,
         Pound = 0x01,
         KarateChop = 0x02,
         DoubleSlap = 0x03,
