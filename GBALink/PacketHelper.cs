@@ -17,7 +17,7 @@ namespace PokemonPacketCorruptor
         }
     }
 
-    internal enum Action : byte
+    public enum Action : byte
     {
         Attack1 = 0x60,
         Attack2 = 0x61,
@@ -30,7 +30,7 @@ namespace PokemonPacketCorruptor
     }
 
     [Flags]
-    internal enum PokemonStatus : byte
+    public enum PokemonStatus : byte
     {
         Normal = 0x00,
         Asleep = 0x04,
@@ -40,7 +40,7 @@ namespace PokemonPacketCorruptor
         Paralyzed = 0x40
     }
 
-    internal enum PokemonType : byte
+    public enum PokemonType : byte
     {
         Normal = 0x00,
         Fighting = 0x01,
@@ -59,7 +59,7 @@ namespace PokemonPacketCorruptor
         Dragon = 0x1A
     }
 
-    internal enum PokemonAttack : byte
+    public enum PokemonAttack : byte
     {
         None = 0x00,
         Pound = 0x01,

@@ -1,37 +1,37 @@
 ﻿namespace PokemonPacketCorruptor
 {
-    internal class Pokemon
+    public class Pokemon
     {
-        internal string Name = "";
-        internal string TrainerName = "";
-        internal byte Id;
-        internal short Hp;
-        internal PokemonStatus Status = PokemonStatus.Normal;
-        internal PokemonType Type1 = PokemonType.Normal;
-        internal PokemonType Type2 = PokemonType.Normal;
-        internal PokemonAttack Move1 = PokemonAttack.None;
-        internal PokemonAttack Move2 = PokemonAttack.None;
-        internal PokemonAttack Move3 = PokemonAttack.None;
-        internal PokemonAttack Move4 = PokemonAttack.None;
-        internal short TrainerId;
-        internal int Experience;
-        internal short HpEv;
-        internal short AttackEv;
-        internal short DefenseEv;
-        internal short SpeedEv;
-        internal short SpecialEv;
-        internal byte AttackDefenseIv;
-        internal byte SpeedSpecialIv;
-        internal byte PP1;
-        internal byte PP2;
-        internal byte PP3;
-        internal byte PP4;
-        internal byte Level;
-        internal short MaxHp;
-        internal short Attack;
-        internal short Defense;
-        internal short Speed;
-        internal short Special;
+        public string Name = "";
+        public string TrainerName = "";
+        public byte Id;
+        public short Hp;
+        public PokemonStatus Status = PokemonStatus.Normal;
+        public PokemonType Type1 = PokemonType.Normal;
+        public PokemonType Type2 = PokemonType.Normal;
+        public PokemonAttack Move1 = PokemonAttack.None;
+        public PokemonAttack Move2 = PokemonAttack.None;
+        public PokemonAttack Move3 = PokemonAttack.None;
+        public PokemonAttack Move4 = PokemonAttack.None;
+        public short TrainerId;
+        public int Experience;
+        public short HpEv;
+        public short AttackEv;
+        public short DefenseEv;
+        public short SpeedEv;
+        public short SpecialEv;
+        public byte AttackDefenseIv;
+        public byte SpeedSpecialIv;
+        public byte PP1;
+        public byte PP2;
+        public byte PP3;
+        public byte PP4;
+        public byte Level;
+        public short MaxHp;
+        public short Attack;
+        public short Defense;
+        public short Speed;
+        public short Special;
 
         internal PokemonAttack MoveFromId(byte id)
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PokemonPacketCorruptor;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -17,6 +18,8 @@ namespace GBALink
 
         private static void Main(string[] args)
         {
+            TrainerBotProfiles.SaveTrainerProfile(TrainerBotProfiles.Model, @"profiles\model.pr");
+
             try
             {
                 Listener = new TcpListener(IPAddress.Any, 8765);

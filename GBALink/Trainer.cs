@@ -1,10 +1,10 @@
 ﻿namespace PokemonPacketCorruptor
 {
-    internal class Trainer
+    public class Trainer
     {
-        internal string Name;
-        internal byte PokemonAmount;
-        internal Pokemon[] Pokemons = { new Pokemon(), new Pokemon(), new Pokemon(), new Pokemon(), new Pokemon(), new Pokemon() };
-        internal byte CurrentPokemonIndex;
+        public string Name;
+        public byte PokemonAmount;
+        public Pokemon[] Pokemons = { new Pokemon(), new Pokemon(), new Pokemon(), new Pokemon(), new Pokemon(), new Pokemon() };
+        public byte CurrentPokemonIndex;
     }
 }

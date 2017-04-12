@@ -35,8 +35,14 @@ namespace PokemonPacketCorruptor
 
         public static void Reset(string file = "packets.bin")
         {
-            if (File.Exists(file))
-                File.Delete(file);
+            try
+            {
+                if (File.Exists(file))
+                    File.Delete(file);
+            }
+            catch
+            {
+            }
         }
     }
 }

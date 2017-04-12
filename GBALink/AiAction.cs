@@ -32,8 +32,6 @@ namespace PokemonPacketCorruptor
             var action = (Action)Buffer[1];
             Console.WriteLine($"[VS{battle.Opponent.Name}] Opponent Action is {action}");
 
-            MonitorHelper.Log(Buffer, "ai.bin");
-
             if (r.Next(0, 10) != 1)
                 Attack();
             else
@@ -52,24 +50,24 @@ namespace PokemonPacketCorruptor
             {
                 tries++;
                 index = (byte)r.Next(0, 4);
-                attack = battle.Bot.Pokemons[battle.Bot.CurrentPokemonIndex].MoveFromId(index);
+                attack = battle.Trainer.Pokemons[battle.Trainer.CurrentPokemonIndex].MoveFromId(index);
 
                 if (tries > 20)
                     break;
             }
 
             action = Action.Attack1 + index;
-            Console.WriteLine($"[VS{battle.Opponent.Name}] Bot Attacked #{battle.Bot.CurrentPokemonIndex} ({battle.Bot.Pokemons[battle.Bot.CurrentPokemonIndex].Name}) with {attack}#{index}");
+            Console.WriteLine($"[VS{battle.Opponent.Name}] Bot Attacked #{battle.Trainer.CurrentPokemonIndex} ({battle.Trainer.Pokemons[battle.Trainer.CurrentPokemonIndex].Name}) with {attack}#{index}");
         }
 
         internal void Switch()
         {
-            byte index = (byte)r.Next(0, battle.Bot.PokemonAmount + 1);
+            byte index = (byte)r.Next(0, battle.Trainer.PokemonAmount + 1);
 
-            battle.Bot.CurrentPokemonIndex = index;
+            battle.Trainer.CurrentPokemonIndex = index;
             action = Action.Switch1 + index;
 
-            Console.WriteLine($"[VS{battle.Opponent.Name}] Bot Switched to {battle.Bot.Pokemons[battle.Bot.CurrentPokemonIndex].Name}#{index}");
+            Console.WriteLine($"[VS{battle.Opponent.Name}] Bot Switched to {battle.Trainer.Pokemons[battle.Trainer.CurrentPokemonIndex].Name}#{index}");
         }
     }
 }

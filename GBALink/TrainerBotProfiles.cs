@@ -1,10 +1,16 @@
-﻿namespace PokemonPacketCorruptor
+﻿using GBALink;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System.Collections.Generic;
+using System.IO;
+
+namespace PokemonPacketCorruptor
 {
     internal static class TrainerBotProfiles
     {
-        internal static Trainer Trainer1 = new Trainer
+        internal static Trainer Model = new Trainer
         {
-            Name = "PokeAi1",
+            Name = "PokeAi",
             PokemonAmount = 1,
             Pokemons = new Pokemon[] {
             new Pokemon{
@@ -15,10 +21,10 @@
                 Status = PokemonStatus.Normal,
                 Type1 = PokemonType.Bug,
                 Type2 = PokemonType.Normal,
-                Move1 = PokemonAttack.Bide,
-                Move2 = PokemonAttack.Bide,
-                Move3 = PokemonAttack.Bide,
-                Move4 = PokemonAttack.Bide,
+                Move1 = PokemonAttack.Absorb,
+                Move2 = PokemonAttack.Acid,
+                Move3 = PokemonAttack.Agility,
+                Move4 = PokemonAttack.AuroraBeam,
                 TrainerId = 1,
                 Experience = 50,
                 HpEv = 15,
@@ -46,5 +52,26 @@
             new Pokemon()
         }
         };
+
+        private static JsonSerializerSettings settings = new JsonSerializerSettings { Formatting = Formatting.Indented, Converters = new List<JsonConverter> { new StringEnumConverter { CamelCaseText = true } } };
+
+        internal static Trainer LoadRandomTrainerProfile()
+        {
+            string[] ss = Directory.GetFiles(@"profiles\");
+
+            return LoadTrainerProfile(ss[Program.Random.Next(0, ss.Length)]);
+        }
+
+        internal static Trainer LoadTrainerProfile(string path)
+        {
+            return JsonConvert.DeserializeObject<Trainer>(File.ReadAllText(path), settings);
+        }
+
+        internal static void SaveTrainerProfile(Trainer t, string path)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+
+            File.WriteAllText(path, JsonConvert.SerializeObject(t, settings));
+        }
     }
 }

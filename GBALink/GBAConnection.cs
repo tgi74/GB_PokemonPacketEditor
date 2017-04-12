@@ -104,10 +104,10 @@ namespace GBALink
             foreach (var s in Enum.GetValues(typeof(Stage)))
                 MonitorHelper.Reset($"{Stage}.bin");
 #endif
-            Console.WriteLine($"[!] [VS{ battle.Opponent.Name}] Reset detected");
+            Console.WriteLine($"[!] [VS{battle?.Opponent.Name}] Reset detected");
             Stage = Stage.Synchronization;
             skipPacketCount = 0;
-            battle = new Battle();
+            battle = Mode == Mode.Ai ? new AIBattle() : new Battle();
         }
 
         private Battle battle;
@@ -126,8 +126,8 @@ namespace GBALink
                 case (Stage.Synchronization):// Synchronization section
                     if (bytes[1] == 0x60)// Synchronization successfull packet
                     {
-                        Console.WriteLine($"[!] [VS{ battle.Opponent.Name}] Synchronized");
-                        Stage++;
+                        Console.WriteLine($"[!] [VS{battle?.Opponent.Name}] Synchronized");
+                        Stage = Stage.ModeSelection;
                         bytes[1] = 0x00;
                         break;
                     }
@@ -139,21 +139,12 @@ namespace GBALink
                     break;
 
                 case (Stage.ModeSelection):// Mode Selection section
-                    if (bytes[1] == 0xD5)// Option selected packet
+                    if (bytes[1] == 0xD5 || bytes[1] == 0xD1 || bytes[1] == 0xD0)// Selection is ready
                     {
-                        Console.WriteLine($"[+] [VS{ battle.Opponent.Name}] Option has been selected !");
-                        Stage++;
+                        bytes[1] = 0xD5;
+                        Console.WriteLine($"[+] [VS{battle?.Opponent.Name}] Option has been selected !");
+                        Stage = Stage.Action;
                     }
-                    break;
-
-                case (Stage.TrainerData):// Trainer Data section
-
-                    skipPacketCount++;
-                    if (skipPacketCount < 3)// Skip packets that has be untouched
-                        break;
-                    skipPacketCount = 0;
-
-                    Stage = Stage.Action;
                     break;
 
                 case (Stage.Action):// Trigger Actions
@@ -188,7 +179,7 @@ namespace GBALink
         }
     }
 
-    public enum Mode
+    public enum Mode : byte
     {
         Corrupt,
         Mirror,
@@ -196,11 +187,10 @@ namespace GBALink
         Ai
     }
 
-    public enum Stage
+    public enum Stage : byte
     {
         Synchronization,
         ModeSelection,
-        TrainerData,
         Action,
     }
 }
